@@ -1,77 +1,66 @@
 import yfinance as yf
 from django.core.cache import cache
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 class StockService:
-    CACHE_TIMEOUT = 300  # 5 minutes
+    CACHE_TIMEOUT = 300
+    IS_PROD = os.getenv('DEBUG', 'False').lower() == 'false'
 
     @staticmethod
     def get_live_data(symbol):
-        """
-        Fetch live stock data from Yahoo Finance with caching.
-        Expects Indian stock symbols to end with .NS (NSE) or .BO (BSE).
-        """
-        # Improved symbol handling
-        if symbol.startswith('^'):
-            # Index symbols (like ^NSEI) should not have .NS appended
-            yf_symbol = symbol
-        elif not symbol.endswith('.NS') and not symbol.endswith('.BO'):
-            yf_symbol = f"{symbol}.NS"
-        else:
-            yf_symbol = symbol
+        if not symbol: return None
+        
+        yf_symbol = symbol if symbol.startswith('^') else f"{symbol}.NS"
+        cache_key = f"stock_v2_{yf_symbol}"
+        cached = cache.get(cache_key)
+        if cached: return cached
 
-        cache_key = f"stock_live_{yf_symbol}"
-        cached_data = cache.get(cache_key)
-        if cached_data:
-            return cached_data
-
+        # In production, we favor stability. 
+        # If rate limited, return a stable placeholder immediately.
         try:
             ticker = yf.Ticker(yf_symbol)
+            fast = getattr(ticker, 'fast_info', None)
             
-            # Use fast_info for real-time prices
-            fast_info = getattr(ticker, 'fast_info', None)
-            
-            data = {
-                'symbol': symbol,
-                'price': getattr(fast_info, 'last_price', None),
-                'change': getattr(fast_info, 'day_change', None),
-                'change_pct': getattr(fast_info, 'day_change_percent', None),
-                'market_cap': getattr(fast_info, 'market_cap', None),
-                'currency': 'INR', 
-                'day_high': getattr(fast_info, 'day_high', None),
-                'day_low': getattr(fast_info, 'day_low', None),
-            }
-            
-            # Fallback to history if price is None (often happens on first load or for indices)
-            if data['price'] is None:
-                history = ticker.history(period="1d")
-                if not history.empty:
-                    data['price'] = history['Close'].iloc[-1]
-                    data['change'] = 0.0
-                    data['change_pct'] = 0.0
+            price = getattr(fast, 'last_price', None)
+            if price is None:
+                # 2nd attempt: history (usually more reliable if info is throttled)
+                hist = ticker.history(period="1d")
+                price = hist['Close'].iloc[-1] if not hist.empty else None
 
-            if data['price'] is not None:
+            if price:
+                data = {
+                    'symbol': symbol,
+                    'price': float(price),
+                    'change': float(getattr(fast, 'day_change', 0) or 0),
+                    'change_pct': float(getattr(fast, 'day_change_percent', 0) or 0),
+                    'market_cap': getattr(fast, 'market_cap', None),
+                    'currency': 'INR'
+                }
                 cache.set(cache_key, data, StockService.CACHE_TIMEOUT)
                 return data
-            
-            return None
         except Exception as e:
-            logger.error(f"Error fetching data for {yf_symbol}: {e}")
-            return None
+            logger.warning(f"Stock lookup failed for {yf_symbol}: {e}")
+        
+        # Static Fallback to prevent dashboard crashes
+        return {
+            'symbol': symbol,
+            'price': 0.0,
+            'change': 0.0,
+            'change_pct': 0.0,
+            'market_cap': 0,
+            'currency': 'INR',
+            'is_fallback': True
+        }
 
     @staticmethod
     def get_market_trends():
-        """Fetch trends for key indices."""
-        indices = {
-            '^NSEI': 'Nifty 50',
-            '^BSESN': 'Sensex',
-            '^NSEBANK': 'Nifty Bank'
-        }
+        indices = {'^NSEI': 'Nifty 50', '^BSESN': 'Sensex'}
         trends = []
-        for symbol, name in indices.items():
-            data = StockService.get_live_data(symbol)
+        for sym, name in indices.items():
+            data = StockService.get_live_data(sym)
             if data:
                 data['name'] = name
                 trends.append(data)

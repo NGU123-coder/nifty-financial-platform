@@ -1,23 +1,26 @@
 #!/usr/bin/env bash
-# Render Deployment Script
-set -e # Exit on error
+# Render Deployment Script - Robust Version
+set -e
 
-echo "--- Starting Deployment Steps ---"
+echo "--- STARTING DEPLOYMENT ---"
 
-# 1. Navigate to the project root (should be here)
-echo "Working directory: $(pwd)"
-
-# 2. Run Schema Initialization
-echo "Step 1: Initializing warehouse schema..."
+# Navigate to app directory
 cd web_api
-python manage.py init_schema
 
-# 3. Run Django Migrations
-echo "Step 2: Running Django migrations..."
-python manage.py migrate
+# 1. Run Standard Django Migrations
+echo "Step 1: Running migrations..."
+python manage.py migrate --noinput
 
-# 4. Bootstrap Data
+# 2. Setup Warehouse Tables (Unmanaged Models)
+echo "Step 2: Setting up reliable warehouse tables..."
+python manage.py setup_warehouse
+
+# 3. Bootstrap Demo Data
 echo "Step 3: Seeding production demo data..."
-python manage.py bootstrap_data
+python manage.py bootstrap_demo_data
 
-echo "--- Deployment Steps Completed Successfully ---"
+# 4. Final System Check
+echo "Step 4: Performing final check..."
+python manage.py check
+
+echo "--- DEPLOYMENT SUCCESSFUL ---"
