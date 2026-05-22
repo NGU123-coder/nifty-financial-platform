@@ -45,32 +45,49 @@ def register(request):
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
 
+from django.http import HttpResponse
+
+def ping(request):
+    """Public health check endpoint."""
+    return HttpResponse("pong", status=200)
+
 @login_required
 @cache_page(60 * 5)  # Cache for 5 minutes
 def dashboard(request):
-    """Main dashboard view with robust multi-record year handling."""
-    total_companies = Company.objects.count()
-    sectors = Sector.objects.annotate(company_count=Count('company'))
-    
-    # 🚀 FIX: Find the latest YEAR VALUE that actually has scores
-    latest_year_val = MLScore.objects.aggregate(max_year=Max('year__fiscal_year'))['max_year']
-    
-    if latest_year_val:
-        # Filter by fiscal_year VALUE to catch all records across potentially multiple year_ids
-        latest_scores = MLScore.objects.filter(
-            year__fiscal_year=latest_year_val
-        ).select_related('company', 'health').order_by('-probability_score')
-    else:
-        latest_scores = MLScore.objects.none()
-    
-    # Add live market trends
-    market_trends = StockService.get_market_trends()
+    """Main dashboard view with robust multi-record year handling and error fallback."""
+    try:
+        total_companies = Company.objects.count()
+        sectors = Sector.objects.annotate(company_count=Count('company'))
+        
+        # 🚀 FIX: Find the latest YEAR VALUE that actually has scores
+        latest_year_val = MLScore.objects.aggregate(max_year=Max('year__fiscal_year'))['max_year']
+        
+        if latest_year_val:
+            latest_scores = MLScore.objects.filter(
+                year__fiscal_year=latest_year_val
+            ).select_related('company', 'health').order_by('-probability_score')
+        else:
+            latest_scores = MLScore.objects.none()
+            latest_year_val = "N/A"
+    except Exception as e:
+        logger.error(f"Database error in dashboard: {e}")
+        total_companies = 0
+        sectors = []
+        latest_scores = []
+        latest_year_val = "Error"
+
+    # Add live market trends (non-blocking errors)
+    try:
+        market_trends = StockService.get_market_trends()
+    except Exception as e:
+        logger.error(f"Stock service error in dashboard: {e}")
+        market_trends = []
     
     context = {
         'total_companies': total_companies,
         'sectors': sectors,
-        'latest_scores': latest_scores[:10], # Top 10 for dashboard
-        'display_year': latest_year_val if latest_year_val else "N/A",
+        'latest_scores': latest_scores[:10] if latest_scores else [], 
+        'display_year': latest_year_val,
         'market_trends': market_trends
     }
     return render(request, 'analytics/dashboard.html', context)

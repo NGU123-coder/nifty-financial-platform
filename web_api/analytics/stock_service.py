@@ -25,34 +25,40 @@ class StockService:
             return cached_data
 
         try:
+            # Use a fast approach with a custom session/timeout if possible, 
+            # but yfinance doesn't easily expose timeout on .info.
+            # We'll use the cache aggressively.
             ticker = yf.Ticker(yf_symbol)
-            info = ticker.info
-            if info is None:
-                logger.warning(f"No info found for {yf_symbol}")
-                return None
             
-            # Use fast_info for real-time prices if available
+            # fast_info is generally faster than .info
             fast_info = getattr(ticker, 'fast_info', None)
             
+            # Avoid calling .info if possible as it triggers multiple web requests
             data = {
                 'symbol': symbol,
-                'price': fast_info.last_price if fast_info and hasattr(fast_info, 'last_price') else info.get('currentPrice'),
-                'change': fast_info.day_change if fast_info and hasattr(fast_info, 'day_change') else None,
-                'change_pct': fast_info.day_change_percent if fast_info and hasattr(fast_info, 'day_change_percent') else None,
-                'market_cap': info.get('marketCap'),
-                'currency': info.get('currency', 'INR'),
-                'day_high': fast_info.day_high if fast_info and hasattr(fast_info, 'day_high') else info.get('dayHigh'),
-                'day_low': fast_info.day_low if fast_info and hasattr(fast_info, 'day_low') else info.get('dayLow'),
+                'price': getattr(fast_info, 'last_price', None),
+                'change': getattr(fast_info, 'day_change', None),
+                'change_pct': getattr(fast_info, 'day_change_percent', None),
+                'market_cap': getattr(fast_info, 'market_cap', None),
+                'currency': 'INR', # Default
+                'day_high': getattr(fast_info, 'day_high', None),
+                'day_low': getattr(fast_info, 'day_low', None),
             }
             
-            # Fallback if currentPrice is not in info
+            # Only if fast_info fails, try a limited history (faster than .info)
             if data['price'] is None:
                 history = ticker.history(period="1d")
                 if not history.empty:
                     data['price'] = history['Close'].iloc[-1]
+                    # Compute simple change if history has more than 1 row or use prev close
+                    data['change'] = 0.0
+                    data['change_pct'] = 0.0
 
-            cache.set(cache_key, data, StockService.CACHE_TIMEOUT)
-            return data
+            if data['price'] is not None:
+                cache.set(cache_key, data, StockService.CACHE_TIMEOUT)
+                return data
+            
+            return None
         except Exception as e:
             logger.error(f"Error fetching data for {yf_symbol}: {e}")
             return None
