@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -18,6 +19,8 @@ from .serializers import (
     MLScoreSerializer, ProfitLossSerializer, AnalysisSerializer, ProsConsSerializer
 )
 from .stock_service import StockService
+
+logger = logging.getLogger(__name__)
 
 def register(request):
     """Registration view for new analysts with enhanced production logging."""
