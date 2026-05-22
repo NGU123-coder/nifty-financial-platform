@@ -4,7 +4,7 @@ services:
     plan: free
     env: python
     buildCommand: "pip install -r requirements.txt && python web_api/manage.py collectstatic --noinput"
-    preDeployCommand: "python web_api/manage.py init_schema && python web_api/manage.py migrate && python web_api/manage.py bootstrap_data"
+    preDeployCommand: "cd web_api && python manage.py init_schema && python manage.py migrate && python manage.py bootstrap_data"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT --chdir web_api --timeout 120 --workers 3 core.wsgi:application"
     envVars:
       - key: DEBUG
@@ -23,7 +23,7 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
       - key: PYTHONPATH
-        value: /opt/render/project/src:/opt/render/project/src/web_api
+        value: /opt/render/project/src/web_api:/opt/render/project/src
       - key: PYTHON_VERSION
         value: 3.12.3
 
