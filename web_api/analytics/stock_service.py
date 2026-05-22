@@ -13,8 +13,11 @@ class StockService:
         Fetch live stock data from Yahoo Finance with caching.
         Expects Indian stock symbols to end with .NS (NSE) or .BO (BSE).
         """
-        # Append .NS for Nifty companies if not present
-        if not symbol.endswith('.NS') and not symbol.endswith('.BO'):
+        # Improved symbol handling
+        if symbol.startswith('^'):
+            # Index symbols (like ^NSEI) should not have .NS appended
+            yf_symbol = symbol
+        elif not symbol.endswith('.NS') and not symbol.endswith('.BO'):
             yf_symbol = f"{symbol}.NS"
         else:
             yf_symbol = symbol
@@ -25,32 +28,27 @@ class StockService:
             return cached_data
 
         try:
-            # Use a fast approach with a custom session/timeout if possible, 
-            # but yfinance doesn't easily expose timeout on .info.
-            # We'll use the cache aggressively.
             ticker = yf.Ticker(yf_symbol)
             
-            # fast_info is generally faster than .info
+            # Use fast_info for real-time prices
             fast_info = getattr(ticker, 'fast_info', None)
             
-            # Avoid calling .info if possible as it triggers multiple web requests
             data = {
                 'symbol': symbol,
                 'price': getattr(fast_info, 'last_price', None),
                 'change': getattr(fast_info, 'day_change', None),
                 'change_pct': getattr(fast_info, 'day_change_percent', None),
                 'market_cap': getattr(fast_info, 'market_cap', None),
-                'currency': 'INR', # Default
+                'currency': 'INR', 
                 'day_high': getattr(fast_info, 'day_high', None),
                 'day_low': getattr(fast_info, 'day_low', None),
             }
             
-            # Only if fast_info fails, try a limited history (faster than .info)
+            # Fallback to history if price is None (often happens on first load or for indices)
             if data['price'] is None:
                 history = ticker.history(period="1d")
                 if not history.empty:
                     data['price'] = history['Close'].iloc[-1]
-                    # Compute simple change if history has more than 1 row or use prev close
                     data['change'] = 0.0
                     data['change_pct'] = 0.0
 

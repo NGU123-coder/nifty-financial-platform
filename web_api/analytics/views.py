@@ -153,14 +153,19 @@ def company_detail(request, symbol):
 def sector_analysis(request):
     """Sector analysis view with robust defensive handling for empty/missing tables."""
     try:
-        sectors = Sector.objects.all()
+        try:
+            sectors = list(Sector.objects.all())
+        except Exception:
+            sectors = []
+            
         # Use try-except specifically for the aggregate query which hits fact tables
         try:
-            stats = ProfitLoss.objects.values('company__sector__sector_name').annotate(
+            stats_qs = ProfitLoss.objects.values('company__sector__sector_name').annotate(
                 avg_revenue=Avg('revenue'),
                 total_profit=Sum('net_profit'),
                 avg_margin=Avg('net_profit_margin_pct')
             ).order_by('-total_profit')
+            stats = list(stats_qs) # Force evaluation
         except Exception as e:
             logger.warning(f"Failed to fetch ProfitLoss stats: {e}")
             stats = []
@@ -258,6 +263,12 @@ class FinancialsViewSet(viewsets.ReadOnlyModelViewSet):
         """Returns aggregated financial summary by sector."""
         from django.db.models import Avg, Sum
         summary = ProfitLoss.objects.values('company__sector__sector_name').annotate(
+            avg_revenue=Avg('revenue'),
+            total_net_profit=Sum('net_profit'),
+            avg_margin=Avg('net_profit_margin_pct')
+        ).order_by('-total_net_profit')
+        return Response(summary)
+alues('company__sector__sector_name').annotate(
             avg_revenue=Avg('revenue'),
             total_net_profit=Sum('net_profit'),
             avg_margin=Avg('net_profit_margin_pct')
