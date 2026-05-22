@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-pvc
+spec:
+  accessModes:
+    - ReadWriteMany # Required for multiple pods to access the data
+  resources:
+    requests:
+      storage: 5Gi

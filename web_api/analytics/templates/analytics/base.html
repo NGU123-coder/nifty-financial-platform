@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nifty Financial Intelligence{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .sidebar-active { 
+            background: rgba(59, 130, 246, 0.1); 
+            border-right: 4px solid #3b82f6;
+            color: #3b82f6 !important;
+        }
+        .glass-header {
+            backdrop-filter: blur(8px);
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col shadow-2xl z-50">
+            <div class="p-8 flex items-center gap-3 border-b border-slate-800">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center font-black text-xl">N</div>
+                <span class="text-xl font-black tracking-tighter uppercase italic">Nifty 100</span>
+            </div>
+            
+            <nav class="mt-8 flex-1 px-4 space-y-2">
+                <p class="px-4 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em] mb-4">Core Platform</p>
+                
+                {% if user.is_authenticated %}
+                <a href="{% url 'dashboard' %}" class="flex items-center px-4 py-3.5 text-sm font-bold text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-all group">
+                    <svg class="w-5 h-4 mr-3 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h7"></path></svg>
+                    Dashboard
+                </a>
+                
+                <a href="{% url 'sector_analysis' %}" class="flex items-center px-4 py-3.5 text-sm font-bold text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-all group">
+                    <svg class="w-5 h-4 mr-3 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
+                    Sector Analysis
+                </a>
+                
+                <a href="{% url 'health_dashboard' %}" class="flex items-center px-4 py-3.5 text-sm font-bold text-slate-300 hover:bg-slate-800 hover:text-white rounded-xl transition-all group relative">
+                    <svg class="w-5 h-4 mr-3 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.364-6.364l-.707-.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M12 21V20"></path></svg>
+                    AI Health
+                    <span class="absolute right-4 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></span>
+                </a>
+
+                {% if user.is_staff %}
+                <a href="/admin/" class="flex items-center px-4 py-3.5 text-sm font-bold text-amber-400 hover:bg-slate-800 hover:text-amber-300 rounded-xl transition-all group">
+                    <svg class="w-5 h-4 mr-3 text-slate-500 group-hover:text-amber-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    System Admin
+                </a>
+                {% endif %}
+
+                {% else %}
+                <a href="{% url 'login' %}" class="flex items-center px-4 py-3.5 text-sm font-bold text-blue-400 hover:bg-slate-800 hover:text-white rounded-xl transition-all group">
+                    <svg class="w-5 h-4 mr-3 text-slate-500 group-hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    Access Portal
+                </a>
+                {% endif %}
+            </nav>
+
+            <div class="p-8 border-t border-slate-800">
+                <div class="bg-slate-800/50 p-4 rounded-2xl border border-slate-700/50">
+                    <p class="text-[10px] font-black text-slate-500 uppercase mb-2">Market Sentiment</p>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-emerald-400">Bullish</span>
+                        <div class="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="w-2/3 h-full bg-emerald-400"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col min-w-0 bg-slate-50 relative">
+            <header class="flex justify-between items-center py-5 px-10 glass-header sticky top-0 z-40 border-b border-slate-200/50">
+                <div class="flex items-center gap-4">
+                    <h1 class="text-2xl font-black tracking-tight text-slate-800">{% block header %}Overview{% endblock %}</h1>
+                    <div class="hidden md:flex items-center px-3 py-1 bg-slate-100 rounded-full border border-slate-200">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full mr-2 animate-pulse"></span>
+                        <span class="text-[10px] font-black uppercase text-slate-500 tracking-wider">Live System</span>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-xs font-black text-slate-800 tracking-tighter">{{ user.username|default:"Guest Analyst" }}</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{% if user.is_staff %}System Admin{% else %}Intelligence Unit{% endif %}</p>
+                    </div>
+                    {% if user.is_authenticated %}
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="w-11 h-11 rounded-2xl bg-slate-100 border border-slate-200 hover:bg-rose-50 hover:border-rose-100 hover:text-rose-600 flex items-center justify-center transition-all group shadow-sm">
+                            <svg class="w-5 h-5 text-slate-400 group-hover:text-rose-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="w-11 h-11 rounded-2xl bg-blue-600 shadow-lg shadow-blue-200 flex items-center justify-center font-black text-white text-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                    </a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-x-hidden overflow-y-auto px-10 py-10 custom-scrollbar">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Active link highlighting
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('nav a').forEach(link => {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('sidebar-active');
+                    link.classList.remove('text-slate-300');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

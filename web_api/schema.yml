@@ -1,0 +1,851 @@
+openapi: 3.0.3
+info:
+  title: Nifty 100 Financial Intelligence API
+  version: 1.0.0
+  description: API for financial data and ML scores of Nifty 100 companies
+paths:
+  /api/companies/:
+    get:
+      operationId: companies_list
+      parameters:
+      - in: query
+        name: industry
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: sector
+        schema:
+          type: integer
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Company'
+          description: ''
+    post:
+      operationId: companies_create
+      tags:
+      - companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Company'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Company'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+  /api/companies/{company_id}/:
+    get:
+      operationId: companies_retrieve
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyDetail'
+          description: ''
+    put:
+      operationId: companies_update
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Company'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Company'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Company'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    patch:
+      operationId: companies_partial_update
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - companies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCompany'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+    delete:
+      operationId: companies_destroy
+      parameters:
+      - in: path
+        name: company_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this company.
+        required: true
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/companies/top_performers/:
+    get:
+      operationId: companies_top_performers_retrieve
+      description: Returns top 10 companies by latest ML score.
+      tags:
+      - companies
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+          description: ''
+  /api/financials/:
+    get:
+      operationId: financials_list
+      parameters:
+      - in: query
+        name: company
+        schema:
+          type: integer
+      - in: query
+        name: year__fiscal_year
+        schema:
+          type: integer
+      tags:
+      - financials
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfitLoss'
+          description: ''
+  /api/financials/{id}/:
+    get:
+      operationId: financials_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this profit loss.
+        required: true
+      tags:
+      - financials
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfitLoss'
+          description: ''
+  /api/financials/sector_summary/:
+    get:
+      operationId: financials_sector_summary_retrieve
+      description: Returns aggregated financial summary by sector.
+      tags:
+      - financials
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfitLoss'
+          description: ''
+  /api/scores/:
+    get:
+      operationId: scores_list
+      parameters:
+      - in: query
+        name: company
+        schema:
+          type: integer
+      - in: query
+        name: health
+        schema:
+          type: integer
+      - in: query
+        name: year__fiscal_year
+        schema:
+          type: integer
+      tags:
+      - scores
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MLScore'
+          description: ''
+    post:
+      operationId: scores_create
+      tags:
+      - scores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MLScore'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MLScore'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MLScore'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MLScore'
+          description: ''
+  /api/scores/{id}/:
+    get:
+      operationId: scores_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this ml score.
+        required: true
+      tags:
+      - scores
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MLScore'
+          description: ''
+    put:
+      operationId: scores_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this ml score.
+        required: true
+      tags:
+      - scores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MLScore'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MLScore'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MLScore'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MLScore'
+          description: ''
+    patch:
+      operationId: scores_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this ml score.
+        required: true
+      tags:
+      - scores
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMLScore'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMLScore'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMLScore'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MLScore'
+          description: ''
+    delete:
+      operationId: scores_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this ml score.
+        required: true
+      tags:
+      - scores
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/sectors/:
+    get:
+      operationId: sectors_list
+      tags:
+      - sectors
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Sector'
+          description: ''
+    post:
+      operationId: sectors_create
+      tags:
+      - sectors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sector'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Sector'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Sector'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+          description: ''
+  /api/sectors/{sector_id}/:
+    get:
+      operationId: sectors_retrieve
+      parameters:
+      - in: path
+        name: sector_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this sector.
+        required: true
+      tags:
+      - sectors
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+          description: ''
+    put:
+      operationId: sectors_update
+      parameters:
+      - in: path
+        name: sector_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this sector.
+        required: true
+      tags:
+      - sectors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Sector'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Sector'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Sector'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+          description: ''
+    patch:
+      operationId: sectors_partial_update
+      parameters:
+      - in: path
+        name: sector_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this sector.
+        required: true
+      tags:
+      - sectors
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedSector'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedSector'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedSector'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Sector'
+          description: ''
+    delete:
+      operationId: sectors_destroy
+      parameters:
+      - in: path
+        name: sector_id
+        schema:
+          type: integer
+        description: A unique integer value identifying this sector.
+        required: true
+      tags:
+      - sectors
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    Company:
+      type: object
+      properties:
+        company_id:
+          type: integer
+          readOnly: true
+        symbol:
+          type: string
+          maxLength: 20
+        company_name:
+          type: string
+          maxLength: 255
+        sector:
+          type: integer
+        sector_name:
+          type: string
+          readOnly: true
+        industry:
+          type: string
+          nullable: true
+          maxLength: 255
+        listing_date:
+          type: string
+          format: date
+          nullable: true
+      required:
+      - company_id
+      - company_name
+      - sector
+      - sector_name
+      - symbol
+    CompanyDetail:
+      type: object
+      properties:
+        company_id:
+          type: integer
+          readOnly: true
+        symbol:
+          type: string
+          maxLength: 20
+        company_name:
+          type: string
+          maxLength: 255
+        sector_name:
+          type: string
+          readOnly: true
+        industry:
+          type: string
+          nullable: true
+          maxLength: 255
+        scores:
+          type: array
+          items:
+            $ref: '#/components/schemas/MLScore'
+          readOnly: true
+        financials:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfitLoss'
+          readOnly: true
+        pros_cons:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProsCons'
+          readOnly: true
+      required:
+      - company_id
+      - company_name
+      - financials
+      - pros_cons
+      - scores
+      - sector_name
+      - symbol
+    MLScore:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        health_label:
+          type: string
+          readOnly: true
+        year_val:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          readOnly: true
+        probability_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,4})?$
+        prediction_date:
+          type: string
+          format: date-time
+          readOnly: true
+        company:
+          type: integer
+        year:
+          type: integer
+        health:
+          type: integer
+          nullable: true
+      required:
+      - company
+      - health_label
+      - id
+      - prediction_date
+      - probability_score
+      - year
+      - year_val
+    PatchedCompany:
+      type: object
+      properties:
+        company_id:
+          type: integer
+          readOnly: true
+        symbol:
+          type: string
+          maxLength: 20
+        company_name:
+          type: string
+          maxLength: 255
+        sector:
+          type: integer
+        sector_name:
+          type: string
+          readOnly: true
+        industry:
+          type: string
+          nullable: true
+          maxLength: 255
+        listing_date:
+          type: string
+          format: date
+          nullable: true
+    PatchedMLScore:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        health_label:
+          type: string
+          readOnly: true
+        year_val:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          readOnly: true
+        probability_score:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,4})?$
+        prediction_date:
+          type: string
+          format: date-time
+          readOnly: true
+        company:
+          type: integer
+        year:
+          type: integer
+        health:
+          type: integer
+          nullable: true
+    PatchedSector:
+      type: object
+      properties:
+        sector_id:
+          type: integer
+          readOnly: true
+        sector_name:
+          type: string
+          maxLength: 100
+    ProfitLoss:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        year_val:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+          readOnly: true
+        revenue:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        expenses:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        operating_profit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        net_profit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        eps:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        dividend_payout_pct:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        net_profit_margin_pct:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        expense_ratio_pct:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,16}(?:\.\d{0,2})?$
+          nullable: true
+        company:
+          type: integer
+        year:
+          type: integer
+      required:
+      - company
+      - id
+      - year
+      - year_val
+    ProsCons:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/TypeEnum'
+        point:
+          type: string
+        company:
+          type: integer
+      required:
+      - company
+      - id
+      - point
+      - type
+    Sector:
+      type: object
+      properties:
+        sector_id:
+          type: integer
+          readOnly: true
+        sector_name:
+          type: string
+          maxLength: 100
+      required:
+      - sector_id
+      - sector_name
+    TypeEnum:
+      enum:
+      - PROS
+      - CONS
+      type: string
+      description: |-
+        * `PROS` - PROS
+        * `CONS` - CONS
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid

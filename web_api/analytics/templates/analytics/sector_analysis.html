@@ -1,0 +1,64 @@
+{% extends 'analytics/base.html' %}
+
+{% block title %}Sector Intelligence - Nifty Financial{% endblock %}
+{% block header %}Sector-wise Performance Comparison{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-[40px] shadow-sm overflow-hidden border border-slate-100">
+    <div class="px-10 py-8 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
+        <div>
+            <h2 class="text-xl font-black text-slate-800 tracking-tight">Aggregate Sector Performance</h2>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Cross-Sector Financial Audit • Global Averages</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="px-4 py-2 bg-blue-600 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">Recompute Stats</button>
+        </div>
+    </div>
+    
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-white">
+                    <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50">Market Sector</th>
+                    <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-right">Avg Revenue (Cr)</th>
+                    <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-right">Total Net Profit (Cr)</th>
+                    <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-right">Avg Margin %</th>
+                    <th class="px-10 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 text-right">Health Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-50">
+                {% for s in stats %}
+                <tr class="hover:bg-blue-50/30 transition-colors group">
+                    <td class="px-10 py-6">
+                        <p class="text-sm font-black text-slate-700 group-hover:text-blue-900 transition-colors">{{ s.company__sector__sector_name }}</p>
+                    </td>
+                    <td class="px-10 py-6 text-right">
+                        <p class="text-sm font-bold text-slate-600 italic">₹{{ s.avg_revenue|floatformat:2 }}</p>
+                    </td>
+                    <td class="px-10 py-6 text-right">
+                        <p class="text-sm font-black text-emerald-600 tracking-tighter">₹{{ s.total_profit|floatformat:2 }}</p>
+                    </td>
+                    <td class="px-10 py-6 text-right">
+                        <span class="px-3 py-1 bg-slate-100 text-slate-500 rounded-lg text-[11px] font-black group-hover:bg-blue-500 group-hover:text-white transition-all">
+                            {{ s.avg_margin|floatformat:2 }}%
+                        </span>
+                    </td>
+                    <td class="px-10 py-6 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <div class="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Stable</span>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-10 py-24 text-center bg-slate-50/50 italic text-slate-400 text-sm font-bold">
+                        No sector data available. Ensure company-sector mappings are complete.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

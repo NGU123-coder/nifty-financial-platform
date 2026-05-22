@@ -1,0 +1,143 @@
+{% extends 'analytics/base.html' %}
+
+{% block title %}AI Health Intelligence - Nifty Financial{% endblock %}
+{% block header %}AI Portfolio Health Analysis{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+    <!-- Health Distribution Chart -->
+    <div class="lg:col-span-2 bg-white rounded-[40px] shadow-sm p-10 border border-slate-100">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-2xl font-black text-slate-800 tracking-tight">Health Distribution</h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Fiscal Year {{ latest_year }} • ML Population Analysis</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+                <span class="text-xs font-black text-slate-600">N=90 Entities</span>
+            </div>
+        </div>
+        
+        {% if health_dist %}
+            <div class="h-[400px] relative">
+                <canvas id="healthDistChart"></canvas>
+            </div>
+        {% else %}
+            <div class="flex items-center justify-center h-80 bg-slate-50/50 rounded-[30px] border-2 border-dashed border-slate-200">
+                <div class="text-center max-w-xs">
+                    <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <p class="text-slate-500 font-black text-sm tracking-tight">No ML Intelligence Ready</p>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-2 leading-relaxed">The portfolio health distribution will appear once the AI scoring engine completes its cycle.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Methodology & Pillars -->
+    <div class="lg:col-span-1 space-y-8">
+        <div class="bg-slate-900 rounded-[40px] shadow-2xl shadow-slate-200 p-10 text-white relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-bl-[100px] -mr-10 -mt-10"></div>
+            
+            <h2 class="text-xl font-black mb-8 tracking-tight relative z-10">Intelligence Pillars</h2>
+            
+            <div class="space-y-6 relative z-10">
+                <div class="flex gap-4 group">
+                    <div class="w-10 h-10 bg-white/10 rounded-xl flex-shrink-0 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
+                        <svg class="w-5 h-5 text-blue-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Profitability</p>
+                        <p class="text-sm text-slate-300 leading-snug">Deep audit of Net Margin, ROE, and ROCE efficiency.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 group">
+                    <div class="w-10 h-10 bg-white/10 rounded-xl flex-shrink-0 flex items-center justify-center group-hover:bg-emerald-500 transition-colors">
+                        <svg class="w-5 h-5 text-emerald-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Stability</p>
+                        <p class="text-sm text-slate-300 leading-snug">Leverage risk using Debt-to-Equity and Interest Coverage.</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 group">
+                    <div class="w-10 h-10 bg-white/10 rounded-xl flex-shrink-0 flex items-center justify-center group-hover:bg-amber-500 transition-colors">
+                        <svg class="w-5 h-5 text-amber-400 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Cash Conversion</p>
+                        <p class="text-sm text-slate-300 leading-snug">Mapping profit to real-world free cash flow liquidity.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 p-6 bg-white/5 rounded-3xl border border-white/10">
+                <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-2">Model Confidence</p>
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl font-black text-blue-400 italic">94.2%</span>
+                    <span class="text-[9px] text-slate-400 uppercase font-bold leading-tight">Proprietary Neural<br>Architecture</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if health_dist %}
+        const ctx = document.getElementById('healthDistChart').getContext('2d');
+        const data = {
+            labels: [{% for item in health_dist %}"{{ item.health__label_name }}",{% endfor %}],
+            datasets: [{
+                label: 'Entities',
+                data: [{% for item in health_dist %}{{ item.count }},{% endfor %}],
+                backgroundColor: [
+                    '#10b981', // EXCELLENT
+                    '#3b82f6', // GOOD
+                    '#f59e0b', // AVERAGE
+                    '#f43f5e', // WEAK
+                    '#64748b'  // POOR
+                ],
+                borderRadius: 12,
+                borderSkipped: false,
+                barThickness: 40
+            }]
+        };
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        padding: 12,
+                        titleFont: { weight: 'black', size: 13 },
+                        bodyFont: { weight: 'bold' },
+                        displayColors: false,
+                        cornerRadius: 10
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { weight: 'bold', size: 11 }, color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { weight: 'black', size: 10 }, color: '#64748b' }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %}

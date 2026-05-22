@@ -1,0 +1,122 @@
+name: Nifty Financial Platform CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install Linting Tools
+        run: |
+          pip install flake8 black isort
+      - name: Run Black
+        run: black --check .
+      - name: Run Isort
+        run: isort --check-only .
+      - name: Run Flake8
+        run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: nifty_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install dj-database-url gunicorn whitenoise
+      - name: Run Django Tests with Coverage
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/nifty_db
+          REDIS_URL: redis://127.0.0.1:6379/0
+          SECRET_KEY: ci-test-secret-key
+          DEBUG: "True"
+          PYTHONPATH: ${{ github.workspace }}/web_api:${{ github.workspace }}
+          CELERY_TASK_ALWAYS_EAGER: "True"
+        run: |
+          coverage run --source=web_api/analytics,etl,scoring web_api/manage.py test analytics
+          coverage run -a --source=etl tests/test_etl.py
+          coverage run -a --source=scoring tests/test_scoring.py
+      
+      - name: Coverage Report
+        run: |
+          coverage report -m
+          coverage xml
+      
+      - name: Upload Coverage to Codecov (Optional)
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+      - name: Run Django Checks
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/nifty_db
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: ci-test-secret-key
+          DEBUG: "True"
+          PYTHONPATH: ${{ github.workspace }}/web_api
+        run: |
+          python web_api/manage.py check
+          python web_api/manage.py migrate --check
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Web Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./web_api/Dockerfile
+          push: false
+          tags: nifty-platform-web:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  compose-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Docker Compose
+        run: docker compose config

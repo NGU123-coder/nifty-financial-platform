@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nifty-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nifty-web
+  template:
+    metadata:
+      labels:
+        app: nifty-web
+    spec:
+      containers:
+      - name: nifty-web
+        image: nifty-web:latest # Replace with your actual image
+        command: ["gunicorn", "core.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--chdir", "/app/web_api"]
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: nifty-config
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: nifty-secrets
+              key: DB_PASSWORD
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nifty-secrets
+              key: SECRET_KEY
+        # Optional: Add DATABASE_URL if needed explicitly
+        - name: DATABASE_URL
+          value: "postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)"
+        volumeMounts:
+        - name: data-storage
+          mountPath: /app/data
+        - name: static-storage
+          mountPath: /app/web_api/staticfiles
+        - name: media-storage
+          mountPath: /app/web_api/media
+      volumes:
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: data-pvc
+      - name: static-storage
+        persistentVolumeClaim:
+          claimName: static-pvc
+      - name: media-storage
+        persistentVolumeClaim:
+          claimName: media-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nifty-web
+spec:
+  selector:
+    app: nifty-web
+  ports:
+  - port: 80
+    targetPort: 8000
+  type: ClusterIP

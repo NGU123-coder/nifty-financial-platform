@@ -1,0 +1,65 @@
+{% extends 'analytics/base.html' %}
+
+{% block title %}Login - Nifty Financial Intelligence{% endblock %}
+{% block header %}Access Portal{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[60vh]">
+    <div class="w-full max-w-md bg-white rounded-[40px] shadow-2xl p-12 border border-slate-100">
+        <div class="text-center mb-10">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-200">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h2 class="text-2xl font-black text-slate-800 tracking-tight">Intelligence Access</h2>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 text-center">Authorized Analysts Only</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% for field in form %}
+            <div>
+                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">{{ field.label }}</label>
+                <div class="relative group">
+                    {{ field }}
+                    {% if field.errors %}
+                        {% for error in field.errors %}
+                        <p class="text-rose-500 text-[10px] font-bold mt-1 ml-1 uppercase">{{ error }}</p>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="w-full py-4 bg-blue-600 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 mt-8">
+                Initialize Session
+            </button>
+        </form>
+
+        <div class="mt-10 pt-8 border-t border-slate-50 text-center">
+            <p class="text-xs font-medium text-slate-400">New analyst? 
+                <a href="{% url 'register' %}" class="text-blue-600 font-black uppercase tracking-widest text-[10px] ml-2 hover:text-blue-800">Register Account</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    input {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        background-color: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: #1e293b;
+        transition: all 0.2s ease;
+    }
+    input:focus {
+        outline: none;
+        border-color: #3b82f6;
+        background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+</style>
+{% endblock %}
