@@ -151,13 +151,18 @@ def company_detail(request, symbol):
 @login_required
 @cache_page(60 * 15)  # Cache for 15 minutes
 def sector_analysis(request):
-    """Sector analysis view."""
-    sectors = Sector.objects.all()
-    stats = ProfitLoss.objects.values('company__sector__sector_name').annotate(
-        avg_revenue=Avg('revenue'),
-        total_profit=Sum('net_profit'),
-        avg_margin=Avg('net_profit_margin_pct')
-    )
+    """Sector analysis view with defensive handling."""
+    try:
+        sectors = Sector.objects.all()
+        stats = ProfitLoss.objects.values('company__sector__sector_name').annotate(
+            avg_revenue=Avg('revenue'),
+            total_profit=Sum('net_profit'),
+            avg_margin=Avg('net_profit_margin_pct')
+        )
+    except Exception as e:
+        logger.error(f"Error in sector_analysis: {e}")
+        sectors = []
+        stats = []
     
     context = {
         'sectors': sectors,
@@ -169,19 +174,24 @@ def sector_analysis(request):
 @cache_page(60 * 15)
 def health_dashboard(request):
     """AI Health dashboard view with latest data and robust year handling."""
-    # Find the latest year that actually has ML scores
-    latest_year_val = MLScore.objects.aggregate(max_year=Max('year__fiscal_year'))['max_year']
-    
-    if latest_year_val:
-        # Aggregate counts by health label for all records matching that fiscal year value
-        health_dist = MLScore.objects.filter(
-            year__fiscal_year=latest_year_val
-        ).values('health__label_name').annotate(
-            count=Count('id')
-        ).order_by('health__health_id')
-    else:
-        health_dist = MLScore.objects.none()
-        latest_year_val = "N/A"
+    try:
+        # Find the latest year that actually has ML scores
+        latest_year_val = MLScore.objects.aggregate(max_year=Max('year__fiscal_year'))['max_year']
+        
+        if latest_year_val:
+            # Aggregate counts by health label for all records matching that fiscal year value
+            health_dist = MLScore.objects.filter(
+                year__fiscal_year=latest_year_val
+            ).values('health__label_name').annotate(
+                count=Count('id')
+            ).order_by('health__health_id')
+        else:
+            health_dist = MLScore.objects.none()
+            latest_year_val = "N/A"
+    except Exception as e:
+        logger.error(f"Error in health_dashboard: {e}")
+        health_dist = []
+        latest_year_val = "Error"
     
     context = {
         'health_dist': health_dist,
