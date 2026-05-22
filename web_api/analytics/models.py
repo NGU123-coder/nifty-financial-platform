@@ -27,7 +27,7 @@ class Company(models.Model):
     company_id = models.AutoField(primary_key=True)
     symbol = models.CharField(max_length=20, unique=True)
     company_name = models.CharField(max_length=255)
-    sector = models.ForeignKey(Sector, on_delete=models.DO_NOTHING, db_column='sector_id')
+    sector = models.ForeignKey(Sector, on_delete=models.DO_NOTHING, db_column='sector_id', null=True, blank=True)
     industry = models.CharField(max_length=255, null=True, blank=True)
     listing_date = models.DateField(null=True, blank=True)
 

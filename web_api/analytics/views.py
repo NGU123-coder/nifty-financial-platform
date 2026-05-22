@@ -82,24 +82,25 @@ def company_detail(request, symbol):
     latest_bs = balance_sheet.last()
     
     # 3. Peer Comparison (Same Sector)
-    peer_companies = Company.objects.filter(
-        sector=company.sector
-    ).exclude(
-        symbol=symbol
-    ).exclude(
-        symbol=''
-    ).exclude(
-        symbol__isnull=True
-    )[:5]
-    
     peers = []
-    for p in peer_companies:
-        latest_peer_analysis = Analysis.objects.filter(company=p).order_by('year__fiscal_year').last()
-        peers.append({
-            'symbol': p.symbol,
-            'company_name': p.company_name,
-            'roe': latest_peer_analysis.roe_pct if latest_peer_analysis else "N/A"
-        })
+    if company.sector:
+        peer_companies = Company.objects.filter(
+            sector=company.sector
+        ).exclude(
+            symbol=symbol
+        ).exclude(
+            symbol=''
+        ).exclude(
+            symbol__isnull=True
+        )[:5]
+        
+        for p in peer_companies:
+            latest_peer_analysis = Analysis.objects.filter(company=p).order_by('year__fiscal_year').last()
+            peers.append({
+                'symbol': p.symbol,
+                'company_name': p.company_name,
+                'roe': latest_peer_analysis.roe_pct if latest_peer_analysis else "N/A"
+            })
     
     context = {
         'company': company,

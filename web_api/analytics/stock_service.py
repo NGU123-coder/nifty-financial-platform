@@ -27,19 +27,22 @@ class StockService:
         try:
             ticker = yf.Ticker(yf_symbol)
             info = ticker.info
+            if info is None:
+                logger.warning(f"No info found for {yf_symbol}")
+                return None
             
             # Use fast_info for real-time prices if available
-            fast_info = ticker.fast_info
+            fast_info = getattr(ticker, 'fast_info', None)
             
             data = {
                 'symbol': symbol,
-                'price': fast_info.last_price if hasattr(fast_info, 'last_price') else info.get('currentPrice'),
-                'change': fast_info.day_change if hasattr(fast_info, 'day_change') else None,
-                'change_pct': fast_info.day_change_percent if hasattr(fast_info, 'day_change_percent') else None,
+                'price': fast_info.last_price if fast_info and hasattr(fast_info, 'last_price') else info.get('currentPrice'),
+                'change': fast_info.day_change if fast_info and hasattr(fast_info, 'day_change') else None,
+                'change_pct': fast_info.day_change_percent if fast_info and hasattr(fast_info, 'day_change_percent') else None,
                 'market_cap': info.get('marketCap'),
                 'currency': info.get('currency', 'INR'),
-                'day_high': fast_info.day_high if hasattr(fast_info, 'day_high') else info.get('dayHigh'),
-                'day_low': fast_info.day_low if hasattr(fast_info, 'day_low') else info.get('dayLow'),
+                'day_high': fast_info.day_high if fast_info and hasattr(fast_info, 'day_high') else info.get('dayHigh'),
+                'day_low': fast_info.day_low if fast_info and hasattr(fast_info, 'day_low') else info.get('dayLow'),
             }
             
             # Fallback if currentPrice is not in info
