@@ -20,13 +20,24 @@ from .serializers import (
 from .stock_service import StockService
 
 def register(request):
-    """Registration view for new analysts."""
+    """Registration view for new analysts with enhanced production logging."""
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('dashboard')
+            try:
+                user = form.save()
+                logger.info(f"User {user.username} created successfully.")
+                login(request, user)
+                logger.info(f"User {user.username} logged in successfully. Redirecting to dashboard.")
+                return redirect('dashboard')
+            except Exception as e:
+                logger.error(f"Error during user registration/login: {str(e)}")
+                return render(request, 'registration/register.html', {
+                    'form': form,
+                    'error': "An internal error occurred during registration. Please try again."
+                })
+        else:
+            logger.warning(f"Registration form invalid: {form.errors}")
     else:
         form = UserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
