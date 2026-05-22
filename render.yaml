@@ -1,10 +1,10 @@
 services:
-  web:
-    plan: free
-    type: web
+  - type: web
     name: nifty-financial-web
+    plan: free
     env: python
-    buildCommand: "pip install -r requirements.txt && python web_api/manage.py collectstatic --noinput && python web_api/manage.py migrate"
+    buildCommand: "pip install -r requirements.txt && python web_api/manage.py collectstatic --noinput"
+    preDeployCommand: "python web_api/manage.py migrate"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT --chdir web_api core.wsgi:application"
     envVars:
       - key: DEBUG
@@ -23,12 +23,11 @@ services:
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
       - key: PYTHONPATH
-        value: /opt/render/project/src/web_api
+        value: /opt/render/project/src:/opt/render/project/src/web_api
 
-  worker:
-    plan: free
-    type: worker
+  - type: worker
     name: nifty-financial-worker
+    plan: free
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "cd web_api && celery -A core worker -l info"
@@ -43,12 +42,11 @@ services:
           name: nifty-financial-cache
           property: connectionString
       - key: PYTHONPATH
-        value: /opt/render/project/src/web_api
+        value: /opt/render/project/src:/opt/render/project/src/web_api
 
-  beat:
-    plan: free
-    type: worker
+  - type: worker
     name: nifty-financial-beat
+    plan: free
     env: python
     buildCommand: "pip install -r requirements.txt"
     startCommand: "cd web_api && celery -A core beat -l info"
@@ -63,7 +61,7 @@ services:
           name: nifty-financial-cache
           property: connectionString
       - key: PYTHONPATH
-        value: /opt/render/project/src/web_api
+        value: /opt/render/project/src:/opt/render/project/src/web_api
 
 databases:
   - name: nifty-financial-db
