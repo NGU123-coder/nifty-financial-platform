@@ -22,7 +22,7 @@ The platform follows a robust microservices architecture orchestrated by Docker 
 - **ETL Pipeline:** Standalone Python scripts for data extraction, transformation, and database loading.
 - **ML Engine:** Scikit-Learn based models for anomaly detection and financial scoring.
 
-![Architecture Diagram Placeholder](https://via.placeholder.com/800x400?text=Architecture+Diagram)
+![Dashboard](docs/screenshots/dashboard.png)
 
 ## Features
 
@@ -32,6 +32,20 @@ The platform follows a robust microservices architecture orchestrated by Docker 
 - **RESTful API:** Fully documented Swagger UI (`/api/schema/swagger-ui/`) for programmatically accessing sectors, companies, financials, and scores.
 - **Background Tasks:** Asynchronous data processing, scraping, and ML model retraining handled by Celery.
 - **Caching:** API endpoints and heavy database queries are cached via Redis for low latency.
+
+## Screenshots
+
+| Dashboard Overview | Company Deep Audit |
+| :---: | :---: |
+| ![Dashboard](docs/screenshots/dashboard.png) | ![Company](docs/screenshots/company.png) |
+
+| AI Health Analytics | Sector Analysis |
+| :---: | :---: |
+| ![Health](docs/screenshots/health.png) | ![Sector](docs/screenshots/sector.png) |
+
+| API Documentation | Task Monitoring (Flower) |
+| :---: | :---: |
+| ![API](docs/screenshots/api.png) | ![Flower](docs/screenshots/flower.png) |
 
 ## Tech Stack
 
