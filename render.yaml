@@ -4,7 +4,7 @@ services:
     plan: free
     env: python
     buildCommand: "pip install -r requirements.txt && python web_api/manage.py collectstatic --noinput"
-    preDeployCommand: "cd web_api && python manage.py init_schema && python manage.py migrate && python manage.py bootstrap_data"
+    preDeployCommand: "bash scripts/render_deploy.sh"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT --chdir web_api --timeout 120 --workers 3 core.wsgi:application"
     envVars:
       - key: DEBUG
