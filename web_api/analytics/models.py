@@ -6,7 +6,7 @@ class Sector(models.Model):
     
     class Meta:
         db_table = 'dim_sector'
-        managed = False
+        managed = True
         verbose_name_plural = "Sectors"
 
     def __str__(self):
@@ -18,7 +18,7 @@ class HealthLabel(models.Model):
 
     class Meta:
         db_table = 'dim_health_label'
-        managed = False
+        managed = True
 
     def __str__(self):
         return self.label_name
@@ -33,7 +33,7 @@ class Company(models.Model):
 
     class Meta:
         db_table = 'dim_company'
-        managed = False
+        managed = True
         verbose_name_plural = "Companies"
 
     def __str__(self):
@@ -47,7 +47,7 @@ class FiscalYear(models.Model):
 
     class Meta:
         db_table = 'dim_year'
-        managed = False
+        managed = True
         unique_together = ('fiscal_year', 'period_name')
 
     def __str__(self):
@@ -68,7 +68,7 @@ class ProfitLoss(models.Model):
 
     class Meta:
         db_table = 'fact_profit_loss'
-        managed = False
+        managed = True
         unique_together = ('company', 'year')
 
 class BalanceSheet(models.Model):
@@ -89,7 +89,7 @@ class BalanceSheet(models.Model):
 
     class Meta:
         db_table = 'fact_balance_sheet'
-        managed = False
+        managed = True
         unique_together = ('company', 'year')
 
 class CashFlow(models.Model):
@@ -104,7 +104,7 @@ class CashFlow(models.Model):
 
     class Meta:
         db_table = 'fact_cash_flow'
-        managed = False
+        managed = True
         unique_together = ('company', 'year')
 
 class Analysis(models.Model):
@@ -122,7 +122,7 @@ class Analysis(models.Model):
 
     class Meta:
         db_table = 'fact_analysis'
-        managed = False
+        managed = True
         unique_together = ('company', 'year')
 
 class ProsCons(models.Model):
@@ -134,7 +134,7 @@ class ProsCons(models.Model):
 
     class Meta:
         db_table = 'fact_pros_cons'
-        managed = False
+        managed = True
 
 class MLScore(models.Model):
     id = models.AutoField(primary_key=True)
@@ -146,5 +146,5 @@ class MLScore(models.Model):
 
     class Meta:
         db_table = 'fact_ml_scores'
-        managed = False
+        managed = True
         unique_together = ('company', 'year')
