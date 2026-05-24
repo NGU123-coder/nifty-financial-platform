@@ -268,9 +268,3 @@ class FinancialsViewSet(viewsets.ReadOnlyModelViewSet):
             avg_margin=Avg('net_profit_margin_pct')
         ).order_by('-total_net_profit')
         return Response(summary)
-alues('company__sector__sector_name').annotate(
-            avg_revenue=Avg('revenue'),
-            total_net_profit=Sum('net_profit'),
-            avg_margin=Avg('net_profit_margin_pct')
-        ).order_by('-total_net_profit')
-        return Response(summary)
