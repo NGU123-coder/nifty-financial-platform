@@ -1,7 +1,8 @@
 import os
 from django.core.management.base import BaseCommand
-from django.db import connection
+from django.db import connection, transaction
 from django.conf import settings
+from analytics.models import Sector, Company, FiscalYear, HealthLabel, MLScore, ProfitLoss
 
 class Command(BaseCommand):
     help = 'Seeds the database with initial demo data'
@@ -9,23 +10,121 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('--- STARTING DEMO DATA BOOTSTRAP ---'))
         
-        project_root = os.path.dirname(settings.BASE_DIR)
-        bootstrap_path = os.path.join(project_root, 'manual_render_bootstrap.sql')
-        
-        if not os.path.exists(bootstrap_path):
-            self.stdout.write(self.style.ERROR(f'Bootstrap file not found at: {bootstrap_path}'))
-            return
-
-        self.stdout.write(f'Reading bootstrap data from: {bootstrap_path}')
-        
-        with open(bootstrap_path, 'r') as f:
-            sql = f.read()
-
         try:
-            with connection.cursor() as cursor:
-                self.stdout.write('Executing Bootstrap SQL...')
-                cursor.execute(sql)
+            with transaction.atomic():
+                # 1. Seed Sectors
+                sectors_data = ['Banking', 'IT', 'Automobile', 'Energy', 'Consumer Goods']
+                sector_objs = {}
+                for name in sectors_data:
+                    obj, created = Sector.objects.get_or_create(sector_name=name)
+                    sector_objs[name] = obj
+                    if created:
+                        self.stdout.write(f"Created Sector: {name}")
+
+                # 2. Seed Health Labels
+                labels = ['EXCELLENT', 'GOOD', 'AVERAGE', 'POOR', 'CRITICAL']
+                health_objs = {}
+                for label in labels:
+                    obj, created = HealthLabel.objects.get_or_create(label_name=label)
+                    health_objs[label] = obj
+                    if created:
+                        self.stdout.write(f"Created Health Label: {label}")
+
+                # 3. Seed Fiscal Years
+                years_data = [
+                    (2022, 'Mar 2022', 2022),
+                    (2023, 'Mar 2023', 2023),
+                    (2024, 'Mar 2024', 2024),
+                ]
+                year_objs = {}
+                for fy, period, sort in years_data:
+                    obj, created = FiscalYear.objects.get_or_create(
+                        fiscal_year=fy, 
+                        period_name=period,
+                        defaults={'sort_order': sort}
+                    )
+                    year_objs[fy] = obj
+                    if created:
+                        self.stdout.write(f"Created Fiscal Year: {period}")
+
+                # 4. Seed Companies
+                companies_data = [
+                    ('TCS', 'Tata Consultancy Services', 'IT'),
+                    ('INFY', 'Infosys Ltd', 'IT'),
+                    ('RELIANCE', 'Reliance Industries Ltd', 'Energy'),
+                    ('HDFCBANK', 'HDFC Bank Ltd', 'Banking'),
+                    ('ICICIBANK', 'ICICI Bank Ltd', 'Banking'),
+                    ('TATAMOTORS', 'Tata Motors Ltd', 'Automobile'),
+                    ('LT', 'Larsen & Toubro Ltd', 'Infrastructure'), # Map to Consumer Goods or add if missing
+                    ('SBIN', 'State Bank of India', 'Banking'),
+                    ('AXISBANK', 'Axis Bank Ltd', 'Banking'),
+                    ('WIPRO', 'Wipro Ltd', 'IT'),
+                ]
+                
+                # Ensure Infrastructure sector exists
+                infra_sector, _ = Sector.objects.get_or_create(sector_name='Infrastructure')
+                sector_objs['Infrastructure'] = infra_sector
+
+                company_objs = {}
+                for symbol, name, s_name in companies_data:
+                    obj, created = Company.objects.get_or_create(
+                        symbol=symbol,
+                        defaults={
+                            'company_name': name,
+                            'sector': sector_objs[s_name],
+                            'industry': s_name
+                        }
+                    )
+                    company_objs[symbol] = obj
+                    if created:
+                        self.stdout.write(f"Created Company: {symbol}")
+
+                # 5. Seed ML Scores and ProfitLoss for 2024
+                # Sample Data for 2024
+                scores_2024 = [
+                    ('HDFCBANK', 'EXCELLENT', 0.9250, 150000, 45000),
+                    ('TCS', 'EXCELLENT', 0.9410, 240000, 46000),
+                    ('RELIANCE', 'GOOD', 0.8250, 900000, 70000),
+                    ('INFY', 'GOOD', 0.8120, 150000, 26000),
+                    ('TATAMOTORS', 'AVERAGE', 0.6540, 400000, 31000),
+                    ('ICICIBANK', 'EXCELLENT', 0.8950, 120000, 33000),
+                    ('SBIN', 'GOOD', 0.7820, 400000, 60000),
+                    ('AXISBANK', 'GOOD', 0.7650, 100000, 24000),
+                    ('WIPRO', 'AVERAGE', 0.6120, 90000, 11000),
+                    ('LT', 'GOOD', 0.7950, 200000, 23000),
+                ]
+
+                y2024 = year_objs[2024]
+                for symbol, health_label, score, rev, profit in scores_2024:
+                    comp = company_objs[symbol]
+                    h_label = health_objs[health_label]
+                    
+                    # ML Score
+                    MLScore.objects.get_or_create(
+                        company=comp,
+                        year=y2024,
+                        defaults={
+                            'health': h_label,
+                            'probability_score': score
+                        }
+                    )
+                    
+                    # Profit Loss
+                    ProfitLoss.objects.get_or_create(
+                        company=comp,
+                        year=y2024,
+                        defaults={
+                            'revenue': rev,
+                            'net_profit': profit,
+                            'net_profit_margin_pct': (profit/rev)*100 if rev > 0 else 0
+                        }
+                    )
+
             self.stdout.write(self.style.SUCCESS('--- DEMO DATA BOOTSTRAPPED SUCCESSFULLY ---'))
+            
+            # Final counts for verification
+            self.stdout.write(f"Final Counts: Sectors={Sector.objects.count()}, Companies={Company.objects.count()}, Scores={MLScore.objects.count()}")
+
         except Exception as e:
             self.stdout.write(self.style.ERROR(f'Error bootstrapping data: {e}'))
             raise e
