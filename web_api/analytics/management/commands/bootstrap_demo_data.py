@@ -1,11 +1,10 @@
 import os
 from django.core.management.base import BaseCommand
-from django.db import connection, transaction
-from django.conf import settings
+from django.db import transaction
 from analytics.models import Sector, Company, FiscalYear, HealthLabel, MLScore, ProfitLoss
 
 class Command(BaseCommand):
-    help = 'Seeds the database with initial demo data'
+    help = 'Seeds the database with initial demo data using ORM only'
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('--- STARTING DEMO DATA BOOTSTRAP ---'))
@@ -13,13 +12,13 @@ class Command(BaseCommand):
         try:
             with transaction.atomic():
                 # 1. Seed Sectors
-                sectors_data = ['Banking', 'IT', 'Automobile', 'Energy', 'Consumer Goods']
+                sectors_data = ['Banking', 'IT', 'Automobile', 'Energy', 'Consumer Goods', 'Infrastructure']
                 sector_objs = {}
                 for name in sectors_data:
                     obj, created = Sector.objects.get_or_create(sector_name=name)
                     sector_objs[name] = obj
                     if created:
-                        self.stdout.write(f"Created Sector: {name}")
+                        self.stdout.write(f"  + Created Sector: {name}")
 
                 # 2. Seed Health Labels
                 labels = ['EXCELLENT', 'GOOD', 'AVERAGE', 'POOR', 'CRITICAL']
@@ -28,7 +27,7 @@ class Command(BaseCommand):
                     obj, created = HealthLabel.objects.get_or_create(label_name=label)
                     health_objs[label] = obj
                     if created:
-                        self.stdout.write(f"Created Health Label: {label}")
+                        self.stdout.write(f"  + Created Health Label: {label}")
 
                 # 3. Seed Fiscal Years
                 years_data = [
@@ -45,7 +44,7 @@ class Command(BaseCommand):
                     )
                     year_objs[fy] = obj
                     if created:
-                        self.stdout.write(f"Created Fiscal Year: {period}")
+                        self.stdout.write(f"  + Created Fiscal Year: {period}")
 
                 # 4. Seed Companies
                 companies_data = [
@@ -55,16 +54,12 @@ class Command(BaseCommand):
                     ('HDFCBANK', 'HDFC Bank Ltd', 'Banking'),
                     ('ICICIBANK', 'ICICI Bank Ltd', 'Banking'),
                     ('TATAMOTORS', 'Tata Motors Ltd', 'Automobile'),
-                    ('LT', 'Larsen & Toubro Ltd', 'Infrastructure'), # Map to Consumer Goods or add if missing
+                    ('LT', 'Larsen & Toubro Ltd', 'Infrastructure'),
                     ('SBIN', 'State Bank of India', 'Banking'),
                     ('AXISBANK', 'Axis Bank Ltd', 'Banking'),
                     ('WIPRO', 'Wipro Ltd', 'IT'),
                 ]
                 
-                # Ensure Infrastructure sector exists
-                infra_sector, _ = Sector.objects.get_or_create(sector_name='Infrastructure')
-                sector_objs['Infrastructure'] = infra_sector
-
                 company_objs = {}
                 for symbol, name, s_name in companies_data:
                     obj, created = Company.objects.get_or_create(
@@ -77,10 +72,9 @@ class Command(BaseCommand):
                     )
                     company_objs[symbol] = obj
                     if created:
-                        self.stdout.write(f"Created Company: {symbol}")
+                        self.stdout.write(f"  + Created Company: {symbol}")
 
                 # 5. Seed ML Scores and ProfitLoss for 2024
-                # Sample Data for 2024
                 scores_2024 = [
                     ('HDFCBANK', 'EXCELLENT', 0.9250, 150000, 45000),
                     ('TCS', 'EXCELLENT', 0.9410, 240000, 46000),
@@ -100,7 +94,7 @@ class Command(BaseCommand):
                     h_label = health_objs[health_label]
                     
                     # ML Score
-                    MLScore.objects.get_or_create(
+                    ms_obj, ms_created = MLScore.objects.get_or_create(
                         company=comp,
                         year=y2024,
                         defaults={
@@ -108,9 +102,11 @@ class Command(BaseCommand):
                             'probability_score': score
                         }
                     )
+                    if ms_created:
+                        self.stdout.write(f"  + Created MLScore for {symbol}")
                     
                     # Profit Loss
-                    ProfitLoss.objects.get_or_create(
+                    pl_obj, pl_created = ProfitLoss.objects.get_or_create(
                         company=comp,
                         year=y2024,
                         defaults={
@@ -119,12 +115,18 @@ class Command(BaseCommand):
                             'net_profit_margin_pct': (profit/rev)*100 if rev > 0 else 0
                         }
                     )
+                    if pl_created:
+                        self.stdout.write(f"  + Created ProfitLoss for {symbol}")
 
             self.stdout.write(self.style.SUCCESS('--- DEMO DATA BOOTSTRAPPED SUCCESSFULLY ---'))
             
             # Final counts for verification
-            self.stdout.write(f"Final Counts: Sectors={Sector.objects.count()}, Companies={Company.objects.count()}, Scores={MLScore.objects.count()}")
+            self.stdout.write(f"TOTAL SECTORS: {Sector.objects.count()}")
+            self.stdout.write(f"TOTAL COMPANIES: {Company.objects.count()}")
+            self.stdout.write(f"TOTAL YEARS: {FiscalYear.objects.count()}")
+            self.stdout.write(f"TOTAL SCORES: {MLScore.objects.count()}")
+            self.stdout.write(f"TOTAL PL RECORDS: {ProfitLoss.objects.count()}")
 
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'Error bootstrapping data: {e}'))
+            self.stdout.write(self.style.ERROR(f'BOOTSTRAP FAILED: {e}'))
             raise e

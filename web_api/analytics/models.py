@@ -27,7 +27,7 @@ class Company(models.Model):
     company_id = models.AutoField(primary_key=True)
     symbol = models.CharField(max_length=20, unique=True)
     company_name = models.CharField(max_length=255)
-    sector = models.ForeignKey(Sector, on_delete=models.DO_NOTHING, db_column='sector_id', null=True, blank=True)
+    sector = models.ForeignKey(Sector, on_delete=models.CASCADE, db_column='sector_id', null=True, blank=True)
     industry = models.CharField(max_length=255, null=True, blank=True)
     listing_date = models.DateField(null=True, blank=True)
 
@@ -55,8 +55,8 @@ class FiscalYear(models.Model):
 
 class ProfitLoss(models.Model):
     id = models.AutoField(primary_key=True)
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING, db_column='company_id')
-    year = models.ForeignKey(FiscalYear, on_delete=models.DO_NOTHING, db_column='year_id')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='company_id')
+    year = models.ForeignKey(FiscalYear, on_delete=models.CASCADE, db_column='year_id')
     revenue = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     expenses = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     operating_profit = models.DecimalField(max_digits=18, decimal_places=2, null=True)
@@ -73,8 +73,8 @@ class ProfitLoss(models.Model):
 
 class BalanceSheet(models.Model):
     id = models.AutoField(primary_key=True)
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING, db_column='company_id')
-    year = models.ForeignKey(FiscalYear, on_delete=models.DO_NOTHING, db_column='year_id')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='company_id')
+    year = models.ForeignKey(FiscalYear, on_delete=models.CASCADE, db_column='year_id')
     equity_capital = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     reserves = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     borrowings = models.DecimalField(max_digits=18, decimal_places=2, null=True)
@@ -94,8 +94,8 @@ class BalanceSheet(models.Model):
 
 class CashFlow(models.Model):
     id = models.AutoField(primary_key=True)
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING, db_column='company_id')
-    year = models.ForeignKey(FiscalYear, on_delete=models.DO_NOTHING, db_column='year_id')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='company_id')
+    year = models.ForeignKey(FiscalYear, on_delete=models.CASCADE, db_column='year_id')
     operating_cash_flow = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     investing_cash_flow = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     financing_cash_flow = models.DecimalField(max_digits=18, decimal_places=2, null=True)
@@ -109,8 +109,8 @@ class CashFlow(models.Model):
 
 class Analysis(models.Model):
     id = models.AutoField(primary_key=True)
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING, db_column='company_id')
-    year = models.ForeignKey(FiscalYear, on_delete=models.DO_NOTHING, db_column='year_id')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='company_id')
+    year = models.ForeignKey(FiscalYear, on_delete=models.CASCADE, db_column='year_id')
     market_cap = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     current_price = models.DecimalField(max_digits=18, decimal_places=2, null=True)
     stock_pe = models.DecimalField(max_digits=18, decimal_places=2, null=True)
@@ -128,7 +128,7 @@ class Analysis(models.Model):
 class ProsCons(models.Model):
     id = models.AutoField(primary_key=True)
     TYPE_CHOICES = [('PROS', 'PROS'), ('CONS', 'CONS')]
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING, db_column='company_id')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='company_id')
     type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     point = models.TextField()
 
@@ -138,9 +138,9 @@ class ProsCons(models.Model):
 
 class MLScore(models.Model):
     id = models.AutoField(primary_key=True)
-    company = models.ForeignKey(Company, on_delete=models.DO_NOTHING, db_column='company_id')
-    year = models.ForeignKey(FiscalYear, on_delete=models.DO_NOTHING, db_column='year_id')
-    health = models.ForeignKey(HealthLabel, on_delete=models.DO_NOTHING, db_column='health_id', null=True)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, db_column='company_id')
+    year = models.ForeignKey(FiscalYear, on_delete=models.CASCADE, db_column='year_id')
+    health = models.ForeignKey(HealthLabel, on_delete=models.SET_NULL, db_column='health_id', null=True)
     probability_score = models.DecimalField(max_digits=5, decimal_places=4)
     prediction_date = models.DateTimeField(auto_now_add=True)
 
