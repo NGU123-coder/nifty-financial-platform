@@ -7,7 +7,7 @@ class Command(BaseCommand):
     help = 'Seeds the database with initial demo data using ORM only'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.SUCCESS('--- STARTING DEMO DATA BOOTSTRAP ---'))
+        self.stdout.write(self.style.SUCCESS('BOOTSTRAP STARTED'))
         
         try:
             with transaction.atomic():
@@ -118,7 +118,7 @@ class Command(BaseCommand):
                     if pl_created:
                         self.stdout.write(f"  + Created ProfitLoss for {symbol}")
 
-            self.stdout.write(self.style.SUCCESS('--- DEMO DATA BOOTSTRAPPED SUCCESSFULLY ---'))
+            self.stdout.write(self.style.SUCCESS('BOOTSTRAP COMPLETE'))
             
             # Final counts for verification
             self.stdout.write(f"TOTAL SECTORS: {Sector.objects.count()}")
