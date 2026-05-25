@@ -3,8 +3,8 @@ services:
     name: nifty-financial-web
     plan: free
     env: python
-    buildCommand: "pip install -r requirements.txt && python web_api/manage.py collectstatic --noinput && echo 'RESETTING ANALYTICS MIGRATIONS' && python web_api/manage.py migrate analytics zero --fake || true && echo 'REAPPLYING ANALYTICS MIGRATIONS' && python web_api/manage.py migrate --noinput && python web_api/manage.py bootstrap_demo_data && echo 'BOOTSTRAP COMPLETE' && python web_api/manage.py debug_db"
-    startCommand: "gunicorn --bind 0.0.0.0:$PORT --chdir web_api --timeout 120 --workers 3 core.wsgi:application"
+    buildCommand: "echo '========================================' && echo 'BUILD COMMAND STARTED' && echo '========================================' && pip install -r requirements.txt && python web_api/manage.py collectstatic --noinput && echo 'RESETTING ANALYTICS MIGRATIONS' && python web_api/manage.py migrate analytics zero --fake || true && echo 'REAPPLYING ANALYTICS MIGRATIONS' && python web_api/manage.py migrate --noinput && python web_api/manage.py bootstrap_demo_data && echo 'BOOTSTRAP COMPLETE' && python web_api/manage.py debug_db && echo '========================================' && echo 'BUILD COMMAND COMPLETED' && echo '========================================'"
+    startCommand: "gunicorn --bind 0.0.0.0:$PORT --chdir web_api core.wsgi:application"
     envVars:
       - key: DEBUG
         value: "False"
