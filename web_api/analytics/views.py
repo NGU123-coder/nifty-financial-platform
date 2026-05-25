@@ -94,11 +94,36 @@ def company_detail(request, symbol):
     scores = MLScore.objects.filter(company=company).select_related('health', 'year').order_by('year__fiscal_year')
     financials = ProfitLoss.objects.filter(company=company).select_related('year').order_by('year__fiscal_year')
     
+    # New context data for deep dive
+    latest_score = scores.last()
+    latest_bs = BalanceSheet.objects.filter(company=company).order_by('year__fiscal_year').last()
+    analysis_qs = Analysis.objects.filter(company=company).order_by('year__fiscal_year')
+    pros_cons = ProsCons.objects.filter(company=company)
+    
+    # Peer selection (same sector, excluding self)
+    peers = Company.objects.filter(sector=company.sector).exclude(symbol=company.symbol)[:5]
+    
+    # Debug logging for chart troubleshooting
+    print(f"DEBUG Chart: Company = {symbol}")
+    print(f"DEBUG Chart: Financials Count = {financials.count()}")
+    print(f"DEBUG Chart: Years = {[f.year.period_name for f in financials]}")
+    chart_payload = {
+        "labels": [f.year.period_name for f in financials],
+        "revenue": [float(f.revenue or 0) for f in financials],
+        "profit": [float(f.net_profit or 0) for f in financials]
+    }
+    print(f"DEBUG Chart: Serialized Payload = {chart_payload}")
+
     context = {
         'company': company,
         'live_data': live_data,
         'scores': scores,
         'financials': financials,
+        'latest_score': latest_score,
+        'latest_bs': latest_bs,
+        'analysis': analysis_qs,
+        'pros_cons': pros_cons,
+        'peers': peers,
     }
     return render(request, 'analytics/company_detail.html', context)
 

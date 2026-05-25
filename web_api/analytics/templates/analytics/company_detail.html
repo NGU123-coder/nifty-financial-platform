@@ -217,9 +217,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('mainTrendChart').getContext('2d');
         
-        const labels = [{% for f in financials %}"{{ f.year.period_name }}",{% endfor %}].reverse();
-        const revenueData = [{% for f in financials %}{{ f.revenue|default:0 }},{% endfor %}].reverse();
-        const profitData = [{% for f in financials %}{{ f.net_profit|default:0 }},{% endfor %}].reverse();
+        const labels = [{% for f in financials %}"{{ f.year.period_name }}",{% endfor %}];
+        const revenueData = [{% for f in financials %}{{ f.revenue|default:0 }},{% endfor %}];
+        const profitData = [{% for f in financials %}{{ f.net_profit|default:0 }},{% endfor %}];
 
         new Chart(ctx, {
             type: 'line',
