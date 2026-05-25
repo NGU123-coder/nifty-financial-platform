@@ -4,7 +4,7 @@ services:
     plan: free
     env: python
     buildCommand: "pip install -r requirements.txt && python web_api/manage.py collectstatic --noinput"
-    preDeployCommand: "python web_api/manage.py migrate --noinput && python web_api/manage.py bootstrap_demo_data && python web_api/manage.py debug_db"
+    preDeployCommand: "echo 'RESETTING ANALYTICS MIGRATIONS' && python web_api/manage.py migrate analytics zero --fake || true && echo 'REAPPLYING ANALYTICS MIGRATIONS' && python web_api/manage.py migrate analytics --noinput && python web_api/manage.py bootstrap_demo_data && echo 'BOOTSTRAP COMPLETE' && python web_api/manage.py debug_db"
     startCommand: "gunicorn --bind 0.0.0.0:$PORT --chdir web_api --timeout 120 --workers 3 core.wsgi:application"
     envVars:
       - key: DEBUG
